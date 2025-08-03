@@ -109,6 +109,10 @@ class CardViewModel(
 			card_state.update { it.copy(isHexCodeValid = false) }
 		}
 	}
+
+	fun updateImageUri(uri: String) {
+		card_state.update { it.copy(aucard = it.aucard.copy(imageUri = uri)) }
+	}
 }
 
 data class CardState(

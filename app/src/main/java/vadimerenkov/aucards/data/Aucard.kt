@@ -7,10 +7,12 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class Aucard(
-	@PrimaryKey(autoGenerate = true) val id: Int = 0,
-	val text: String,
-	@ColumnInfo(defaultValue = "false")
-	val isFavourite: Boolean = false,
-	val description: String? = null,
-	val color: Color = Color.White
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val text: String,
+    @ColumnInfo(defaultValue = "false")
+    val isFavourite: Boolean = false,
+    val description: String? = null,
+    val color: Color = Color.White,
+    @ColumnInfo(defaultValue = "")
+    val imageUri: String = ""
 )

@@ -75,6 +75,9 @@ import androidx.compose.ui.text.lerp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vadimerenkov.aucards.R
 import vadimerenkov.aucards.ViewModelFactory
@@ -480,7 +483,7 @@ fun SharedTransitionScope.AucardItem(
 
 	ElevatedCard(
 		colors = CardDefaults.cardColors(
-			containerColor = aucard.color
+			containerColor = if (aucard.imageUri.isEmpty()) aucard.color else Color.Transparent
 		),
 		elevation = CardDefaults.cardElevation(6.dp),
 		modifier = modifier
@@ -506,6 +509,18 @@ fun SharedTransitionScope.AucardItem(
 				resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
 			)
 	) {
+		// Background Image
+		if (aucard.imageUri.isNotEmpty()) {
+			AsyncImage(
+				model = ImageRequest.Builder(LocalContext.current)
+					.data(aucard.imageUri)
+					.crossfade(true)
+					.build(),
+				contentDescription = null,
+				contentScale = ContentScale.Crop,
+				modifier = Modifier.matchParentSize()
+			)
+		}
 		Box {
 			this@ElevatedCard.AnimatedVisibility(
 				visible = isSelectMode,

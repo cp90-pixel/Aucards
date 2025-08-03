@@ -46,6 +46,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import vadimerenkov.aucards.R
@@ -69,6 +83,7 @@ fun SharedTransitionScope.EditScreen(
 	val state by viewModel.cardState.collectAsStateWithLifecycle()
 
 	var colorPaletteOpen by remember { mutableStateOf(false) }
+	var showImagePicker by remember { mutableStateOf(false) }
 	val focusRequester = remember { FocusRequester() }
 	val contentColor by animateColorAsState(calculateContentColor(state.aucard.color))
 	val keyboardController = LocalSoftwareKeyboardController.current
@@ -97,12 +112,26 @@ fun SharedTransitionScope.EditScreen(
 		Box(
 			modifier = modifier
 				.fillMaxSize()
-				.background(state.aucard.color)
+				.background(if (state.aucard.imageUri.isNotEmpty()) Color.Transparent else state.aucard.color)
 				.sharedBounds(
 					contentState,
 					scope
 				)
 		) {
+			// Background Image
+			if (state.aucard.imageUri.isNotEmpty()) {
+				AsyncImage(
+					model = ImageRequest.Builder(LocalContext.current)
+						.data(state.aucard.imageUri)
+						.crossfade(true)
+						.build(),
+					contentDescription = null,
+					contentScale = ContentScale.Crop,
+					modifier = Modifier
+						.matchParentSize()
+				)
+			}
+
 			Column(
 				verticalArrangement = Arrangement.Center,
 				horizontalAlignment = Alignment.CenterHorizontally,
@@ -200,6 +229,36 @@ fun SharedTransitionScope.EditScreen(
 								modifier = Modifier
 									.size(48.dp)
 							)
+						}
+
+						IconButton(
+							onClick = { showImagePicker = true },
+							modifier = Modifier
+								.padding(vertical = 8.dp, horizontal = 8.dp)
+								.size(48.dp)
+						) {
+							Icon(
+								painter = painterResource(R.drawable.ic_image),
+								contentDescription = stringResource(R.string.choose_image),
+								tint = contentColor,
+								modifier = Modifier.size(32.dp)
+							)
+						}
+
+						if (showImagePicker) {
+							val context = LocalContext.current
+							val imagePicker = rememberLauncherForActivityResult(
+								contract = ActivityResultContracts.GetContent()
+							) { uri ->
+								uri?.let { imageUri ->
+									viewModel.updateImageUri(imageUri.toString())
+								}
+								showImagePicker = false
+							}
+
+							LaunchedEffect(Unit) {
+								imagePicker.launch("image/*")
+							}
 						}
 
 						ColorPickerPopup(
